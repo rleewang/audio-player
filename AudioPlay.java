@@ -107,8 +107,7 @@ public class AudioPlay implements LineListener {
 		int min_t = (int) (wavaudio.getMicrosecondLength()/1000000.0)/60;
 		int sec_t = (int) (wavaudio.getMicrosecondLength() - min_t*60*1000000)/1000000;
 		String t = " / " + min_t + ":" + sec_t;
-		
-		//Create the seek bar
+
 		SeekBar progressBar = new SeekBar();
 		player.add(progressBar);
 		

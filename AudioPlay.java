@@ -10,13 +10,14 @@ import javax.swing.*;
 public class AudioPlay implements LineListener {
 	private AudioInputStream wavstream, mp3stream;
 	private File wavfile, mp3wavfile;
-	private Clip wavaudio, mp3audio;
+	public Clip wavaudio, mp3audio;
 	private int min, sec;
 	private final JButton playBtn = new JButton();
 	private final JButton pauseBtn = new JButton();
 	private final JButton stopBtn = new JButton();
 	
 	public AudioPlay() {
+		wavfile = new File("Relapse (Cosmonaut Grechko Version).wav");
 		wavInit();
 		initComponents();
 	}
@@ -27,10 +28,29 @@ public class AudioPlay implements LineListener {
 		//Create menu bar		
 		JMenuBar greenMenu = new JMenuBar();
 		greenMenu.setOpaque(true);
-		greenMenu.setBackground(new Color(154, 165, 127));
-		greenMenu.setPreferredSize(new Dimension(400, 20));
+		greenMenu.setBackground(new Color(204, 255, 153));
+		greenMenu.setPreferredSize(new Dimension(400, 40));
+		FileChooser fc = new FileChooser(wavfile);
+		greenMenu.add(fc);
 		//Add menu bar
 		player.setJMenuBar(greenMenu);
+		/*
+		final JButton browserBtn = new JButton("Open");
+		final JFileChooser fc = new JFileChooser();
+		browserBtn.add(fc);
+		browserBtn.addActionListener(
+				new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						int returnVal = fc.showOpenDialog(browserBtn.this);
+						if(returnVal == fc.APPROVE_OPTION) {
+							wavfile = fc.getSelectedFile();
+						}
+						wavInit();
+					}
+				});
+		browserBtn.setEnabled(true);
+		player.add(browserBtn);
+		*/
 		//Describe the layout style of the frame
 		player.getContentPane().setLayout(new FlowLayout());
 		//Set the title of the player to the name of the song
@@ -41,9 +61,11 @@ public class AudioPlay implements LineListener {
 			Image img = ImageIO.read(getClass().getResource("resources/play.bmp"));
 			playBtn.setIcon(new ImageIcon(img));
 			playBtn.setBorder(BorderFactory.createBevelBorder(0));
+			
 			img = ImageIO.read(getClass().getResource("resources/pause.bmp"));
 			pauseBtn.setIcon(new ImageIcon(img));
 			pauseBtn.setBorder(BorderFactory.createBevelBorder(0));
+			
 			img = ImageIO.read(getClass().getResource("resources/stop.bmp"));
 			stopBtn.setIcon(new ImageIcon(img));
 			stopBtn.setBorder(BorderFactory.createBevelBorder(0));
@@ -108,22 +130,30 @@ public class AudioPlay implements LineListener {
 		int sec_t = (int) (wavaudio.getMicrosecondLength() - min_t*60*1000000)/1000000;
 		String t = " / " + min_t + ":" + sec_t;
 
-		SeekBar progressBar = new SeekBar();
+		SeekBar progressBar = new SeekBar(wavaudio);
 		player.add(progressBar);
 		
 		player.pack();
 		player.setVisible(true);
+		File oldFile = wavfile;
 		//Keep updating the current play time of the song
 		while(true) {
+			if(oldFile != wavfile) {
+				wavInit();
+			}
+			double position = (int) wavaudio.getMicrosecondPosition()/1000000.0;
+			double length = (int) wavaudio.getMicrosecondLength()/1000000.0;
+			int progress = (int) (position/length * 100);
+			progressBar.updateX(progress);
 			temp = progressTime();
 			timerLabel.setText(temp + t);
+//			System.out.println(wavfile);
 		}
 	}
 	
 	public boolean wavInit() {
 		try {
 			//Set up data input
-			wavfile = new File("MissingYou.wav");
 			wavstream = AudioSystem.getAudioInputStream(wavfile);
 			wavaudio = AudioSystem.getClip();
 			wavaudio.open(wavstream);

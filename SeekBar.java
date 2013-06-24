@@ -3,20 +3,23 @@ import javax.swing.BorderFactory;
 import java.awt.event.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.*;
+import javax.sound.sampled.Clip;
 
 public class SeekBar extends JPanel {
 	private int xInset = 1;
 	private int yInset = 1;
-	private Color seekBarColor = Color.BLUE;
+	private Color seekBarColor = new Color(99, 213, 247);
 	private int xPercent = 0;
 	private boolean releasedFlag = true;
 	private Rectangle scrollArea;
 	private double value = 100;
 	private Image bg;
+	public Clip audio;
 	
-	public SeekBar() {
+	public SeekBar(Clip song) {
 		setPreferredSize(new Dimension(100,15));
 		scrollArea = calculateScrollArea();
+		audio = song;
 		
 		addMouseListener(new MouseAdapter() {
 			@Override
@@ -42,38 +45,6 @@ public class SeekBar extends JPanel {
 			}
 		});
 		
-		setBorder(BorderFactory.createEtchedBorder(Color.lightGray, Color.darkGray));
-	}
-	
-	public SeekBar(double val) {
-		value = val;
-		setPreferredSize(new Dimension(100,15));
-		scrollArea = calculateScrollArea();
-		
-		addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseReleased(MouseEvent e) {
-				checkConsistentScrollArea();
-				updateXPercent(e.getX());
-				releasedFlag = true;
-			}
-			@Override
-			public void mousePressed(MouseEvent e) {
-				checkConsistentScrollArea();
-				updateXPercent(e.getX());
-				releasedFlag = false;
-			}
-		});
-		
-		addMouseMotionListener(new MouseMotionAdapter() {
-			@Override
-			public void mouseDragged(MouseEvent e) {
-				checkConsistentScrollArea();
-				updateXPercent(e.getX());
-				releasedFlag = false;
-			}
-		});
-			
 		setBorder(BorderFactory.createEtchedBorder(Color.lightGray, Color.darkGray));
 	}
 	
@@ -95,11 +66,6 @@ public class SeekBar extends JPanel {
 		g.setColor(getSeekBarColor());
 		g.fill(new Rectangle2D.Double(scrollArea.x, scrollArea.y, scrollArea.width*(xPercent/100.0), scrollArea.height));
 		
-		//draw the selected percentage
-		if(!releasedFlag) {
-			
-		}
-		
 		arg0.drawImage(bg, 0, 0, null);
 		g.dispose();
 	}
@@ -118,6 +84,12 @@ public class SeekBar extends JPanel {
 		}
 		
 		xPercent = (int) (((double)(x-scrollArea.x)) / ((double)scrollArea.width) * 100.0);
+		audio.setMicrosecondPosition((int)(xPercent/100.0 * audio.getMicrosecondLength()));
+		repaint();
+	}
+	
+	public void updateX(int x) {
+		xPercent = x;
 		repaint();
 	}
 	
@@ -147,21 +119,5 @@ public class SeekBar extends JPanel {
 	
 	public void setPercent(int val) {
 		xPercent = val;
-	}
-	
-	public int getXInset() {
-		return xInset;
-	}
-	
-	public void setXInset(int val) {
-		xInset = val;
-	}
-	
-	public int getYInset() {
-		return yInset;
-	}
-	
-	public void setYInset(int val) {
-		yInset = val;
 	}
 }

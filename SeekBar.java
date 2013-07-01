@@ -120,4 +120,8 @@ public class SeekBar extends JPanel {
 	public void setPercent(int val) {
 		xPercent = val;
 	}
+	
+	public void setSong(Clip song) {
+		audio = song;
+	}
 }

@@ -8,54 +8,38 @@ import javax.sound.sampled.*;
 import javax.swing.*;
 
 public class AudioPlay implements LineListener {
-	private AudioInputStream wavstream, mp3stream;
 	private File wavfile, mp3wavfile;
+	private AudioInputStream wavstream, mp3stream;
 	public Clip wavaudio, mp3audio;
 	private int min, sec;
 	private final JButton playBtn = new JButton();
 	private final JButton pauseBtn = new JButton();
 	private final JButton stopBtn = new JButton();
-	
+	private SeekBar progressBar;
+	private JFrame player;
+
 	public AudioPlay() {
 		wavfile = new File("Relapse (Cosmonaut Grechko Version).wav");
 		wavInit();
 		initComponents();
 	}
-	
+	//Creates the gui for the player
+	//Defines a file chooser, play/pause/stop buttons, playtime tracker, and a seek bar
+	//Todo: Add a volume control bar, add option to loop
 	public void initComponents() {
 		//Create the frame for the player which everything is added to
-		JFrame player = new JFrame();
-		//Create menu bar		
+		player = new JFrame();
+
 		JMenuBar greenMenu = new JMenuBar();
 		greenMenu.setOpaque(true);
 		greenMenu.setBackground(new Color(204, 255, 153));
-		greenMenu.setPreferredSize(new Dimension(400, 40));
-		FileChooser fc = new FileChooser(wavfile);
-		greenMenu.add(fc);
-		//Add menu bar
+		greenMenu.setPreferredSize(new Dimension(400, 20));
 		player.setJMenuBar(greenMenu);
-		/*
-		final JButton browserBtn = new JButton("Open");
-		final JFileChooser fc = new JFileChooser();
-		browserBtn.add(fc);
-		browserBtn.addActionListener(
-				new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						int returnVal = fc.showOpenDialog(browserBtn.this);
-						if(returnVal == fc.APPROVE_OPTION) {
-							wavfile = fc.getSelectedFile();
-						}
-						wavInit();
-					}
-				});
-		browserBtn.setEnabled(true);
-		player.add(browserBtn);
-		*/
-		//Describe the layout style of the frame
+
 		player.getContentPane().setLayout(new FlowLayout());
-		//Set the title of the player to the name of the song
 		player.setTitle(wavfile.getName());
 		player.setDefaultCloseOperation(player.EXIT_ON_CLOSE);
+		
 		//Set images for the buttons
 		try {
 			Image img = ImageIO.read(getClass().getResource("resources/play.bmp"));
@@ -77,7 +61,36 @@ public class AudioPlay implements LineListener {
 		playBtn.setEnabled(true);
 		pauseBtn.setEnabled(false);
 		stopBtn.setEnabled(false);
-		//Describe what actions to perform when the play button is clicked
+		
+		//Create and add the file chooser browser to the frame
+		final JPanel browser = new JPanel();
+		final JFileChooser fileChooser = new JFileChooser(wavfile);
+		JButton openBtn = new JButton("Open");
+		//Describe what actions to perform when the open button is clicked and add the button to the frame
+		openBtn.addActionListener(
+				new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						int returnVal = fileChooser.showOpenDialog(browser);
+						if(returnVal == fileChooser.APPROVE_OPTION) {
+							final File newFile;
+							newFile = fileChooser.getSelectedFile();
+							System.out.println("Changing song from " + wavfile + " to " + newFile);
+							wavfile = newFile;
+							wavaudio.stop();
+							try {
+								wavstream.close();
+							} catch(IOException ex) {
+
+							}
+							wavInit();
+							progressBar.setSong(wavaudio);
+							player.setTitle(wavfile.getName());
+						}
+					}
+				});
+		browser.add(openBtn);
+		player.getContentPane().add(browser);
+		//Describe what actions to perform when the play button is clicked and add the button to the frame
 		playBtn.addActionListener(
 				new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
@@ -91,9 +104,8 @@ public class AudioPlay implements LineListener {
 					}
 				}
 				);
-		//Add the play button to the frame to be displayed
 		player.getContentPane().add(playBtn);
-		//Describe what actions to perform when the pause button is clicked
+		//Describe what actions to perform when the pause button is clicked and add the button to the frame
 		pauseBtn.addActionListener(
 				new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
@@ -104,9 +116,8 @@ public class AudioPlay implements LineListener {
 					}
 				}
 				);
-		//Add the pause button to the frame to be displayed
 		player.getContentPane().add(pauseBtn);
-		//Describe what actions to perform when the stop button is clicked
+		//Describe what actions to perform when the stop button is clicked and add the button to the frame
 		stopBtn.addActionListener(
 				new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
@@ -118,36 +129,34 @@ public class AudioPlay implements LineListener {
 					}
 				}
 				);
-		//Add the stop button to the frame to be displayed
 		player.getContentPane().add(stopBtn);
 		//Create a JLabel object to display text/images on the frame, timerLabel will display the current playtime
 		JLabel timerLabel = new JLabel();
-		player.add(timerLabel);
+		player.getContentPane().add(timerLabel);
+		
+
+		progressBar = new SeekBar(wavaudio);
+		player.getContentPane().add(progressBar);
 		
 		//Determine the total runtime
 		String temp;
-		int min_t = (int) (wavaudio.getMicrosecondLength()/1000000.0)/60;
-		int sec_t = (int) (wavaudio.getMicrosecondLength() - min_t*60*1000000)/1000000;
-		String t = " / " + min_t + ":" + sec_t;
-
-		SeekBar progressBar = new SeekBar(wavaudio);
-		player.add(progressBar);
+		int progress, min_t, sec_t;
+		double position, length;
 		
 		player.pack();
 		player.setVisible(true);
-		File oldFile = wavfile;
-		//Keep updating the current play time of the song
+
+		//While playing, keep updating the current play time/progress of the song
 		while(true) {
-			if(oldFile != wavfile) {
-				wavInit();
-			}
-			double position = (int) wavaudio.getMicrosecondPosition()/1000000.0;
-			double length = (int) wavaudio.getMicrosecondLength()/1000000.0;
-			int progress = (int) (position/length * 100);
+			position = (int) wavaudio.getMicrosecondPosition()/1000000.0;
+			length = (int) wavaudio.getMicrosecondLength()/1000000.0;
+			min_t = (int) (wavaudio.getMicrosecondLength()/1000000.0)/60;
+			sec_t = (int) (wavaudio.getMicrosecondLength() - min_t*60*1000000)/1000000;
+			
+			progress = (int) (position/length * 100);
 			progressBar.updateX(progress);
 			temp = progressTime();
-			timerLabel.setText(temp + t);
-//			System.out.println(wavfile);
+			timerLabel.setText(temp + " / " + min_t + ":" + sec_t);
 		}
 	}
 	
@@ -160,7 +169,7 @@ public class AudioPlay implements LineListener {
 			//Set loop points (Only if you want to loop a song)
 			int startFrame = 0;
 			int endFrame = wavaudio.getFrameLength() - 2;
-			wavaudio.setLoopPoints(startFrame, endFrame);
+			//wavaudio.setLoopPoints(startFrame, endFrame);
 			//Add a line listener to perform certain actions on events
 			wavaudio.addLineListener(this);
 		} catch(Exception e) {

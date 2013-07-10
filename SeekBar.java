@@ -9,7 +9,7 @@ public class SeekBar extends JPanel {
 	private int xInset = 1;
 	private int yInset = 1;
 	private Color seekBarColor = new Color(99, 213, 247);
-	private int xPercent = 0;
+	private double xPercent = 0;
 	private boolean releasedFlag = true;
 	private Rectangle scrollArea;
 	private double value = 100;
@@ -17,7 +17,7 @@ public class SeekBar extends JPanel {
 	public Clip audio;
 	
 	public SeekBar(Clip song) {
-		setPreferredSize(new Dimension(100,15));
+		setPreferredSize(new Dimension(300,10));
 		scrollArea = calculateScrollArea();
 		audio = song;
 		
@@ -76,19 +76,19 @@ public class SeekBar extends JPanel {
 		}
 	}
 	
-	public void updateXPercent(int x) {
+	public void updateXPercent(double x) {
 		if(x - xInset > scrollArea.width) {
 			x = scrollArea.width + xInset;
 		} else if(x - xInset < xInset) {
 			x = xInset;
 		}
 		
-		xPercent = (int) (((double)(x-scrollArea.x)) / ((double)scrollArea.width) * 100.0);
+		xPercent = (((double)(x-scrollArea.x)) / ((double)scrollArea.width) * 100.0);
 		audio.setMicrosecondPosition((int)(xPercent/100.0 * audio.getMicrosecondLength()));
 		repaint();
 	}
 	
-	public void updateX(int x) {
+	public void updateX(double x) {
 		xPercent = x;
 		repaint();
 	}
@@ -97,30 +97,10 @@ public class SeekBar extends JPanel {
 		return new Rectangle(xInset, yInset, getWidth() - xInset*2, getHeight() - yInset*2);
 	}
 	
-	public double getValue() {
-		return (xPercent/100.0)*value;
-	}
-	
-	public double getPercentAsDecimal() {
-		return (xPercent/100.0);
-	}
-	
 	public Color getSeekBarColor() {
 		return seekBarColor;
 	}
-	
-	public void setSeekBarColor(Color newColor) {
-		seekBarColor = newColor;
-	}
-	
-	public int getPercent() {
-		return xPercent;
-	}
-	
-	public void setPercent(int val) {
-		xPercent = val;
-	}
-	
+
 	public void setSong(Clip song) {
 		audio = song;
 	}

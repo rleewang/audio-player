@@ -8,8 +8,8 @@ import javax.sound.sampled.*;
 import javax.swing.*;
 
 public class AudioPlay implements LineListener {
-	private File wavfile, mp3wavfile;
-	private AudioInputStream wavstream, mp3stream;
+	private File wavfile;
+	private AudioInputStream wavstream;
 	public Clip wavaudio, mp3audio;
 	private int min, sec;
 	private final JButton playBtn = new JButton();
@@ -19,7 +19,7 @@ public class AudioPlay implements LineListener {
 	private JFrame player;
 
 	public AudioPlay() {
-		wavfile = new File("Relapse (Cosmonaut Grechko Version).wav");
+		wavfile = new File("MissingYou.wav");
 		wavInit();
 		initComponents();
 	}
@@ -33,7 +33,7 @@ public class AudioPlay implements LineListener {
 		JMenuBar greenMenu = new JMenuBar();
 		greenMenu.setOpaque(true);
 		greenMenu.setBackground(new Color(204, 255, 153));
-		greenMenu.setPreferredSize(new Dimension(400, 20));
+		greenMenu.setPreferredSize(new Dimension(600, 20));
 		player.setJMenuBar(greenMenu);
 
 		player.getContentPane().setLayout(new FlowLayout());
@@ -74,7 +74,7 @@ public class AudioPlay implements LineListener {
 						if(returnVal == fileChooser.APPROVE_OPTION) {
 							final File newFile;
 							newFile = fileChooser.getSelectedFile();
-							System.out.println("Changing song from " + wavfile + " to " + newFile);
+							//System.out.println("Changing song from " + wavfile + " to " + newFile);
 							wavfile = newFile;
 							wavaudio.stop();
 							try {
@@ -85,6 +85,10 @@ public class AudioPlay implements LineListener {
 							wavInit();
 							progressBar.setSong(wavaudio);
 							player.setTitle(wavfile.getName());
+							playBtn.setEnabled(false);
+							pauseBtn.setEnabled(true);
+							stopBtn.setEnabled(true);
+							wavaudio.start();
 						}
 					}
 				});
@@ -140,8 +144,8 @@ public class AudioPlay implements LineListener {
 		
 		//Determine the total runtime
 		String temp;
-		int progress, min_t, sec_t;
-		double position, length;
+		int min_t, sec_t;
+		double progress, position, length;
 		
 		player.pack();
 		player.setVisible(true);
@@ -153,7 +157,7 @@ public class AudioPlay implements LineListener {
 			min_t = (int) (wavaudio.getMicrosecondLength()/1000000.0)/60;
 			sec_t = (int) (wavaudio.getMicrosecondLength() - min_t*60*1000000)/1000000;
 			
-			progress = (int) (position/length * 100);
+			progress = position * 100.0 /length;
 			progressBar.updateX(progress);
 			temp = progressTime();
 			timerLabel.setText(temp + " / " + min_t + ":" + sec_t);
@@ -167,8 +171,8 @@ public class AudioPlay implements LineListener {
 			wavaudio = AudioSystem.getClip();
 			wavaudio.open(wavstream);
 			//Set loop points (Only if you want to loop a song)
-			int startFrame = 0;
-			int endFrame = wavaudio.getFrameLength() - 2;
+			//int startFrame = 0;
+			//int endFrame = wavaudio.getFrameLength() - 2;
 			//wavaudio.setLoopPoints(startFrame, endFrame);
 			//Add a line listener to perform certain actions on events
 			wavaudio.addLineListener(this);

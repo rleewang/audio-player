@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.awt.*;
 import java.awt.event.*;
@@ -6,6 +7,7 @@ import java.awt.event.*;
 import javax.imageio.ImageIO;
 import javax.sound.sampled.*;
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class AudioPlay implements LineListener {
 	private File wavfile;
@@ -25,7 +27,7 @@ public class AudioPlay implements LineListener {
 	}
 	//Creates the gui for the player
 	//Defines a file chooser, play/pause/stop buttons, playtime tracker, and a seek bar
-	//Todo: Add a volume control bar, add option to loop
+	//Todo: Add a volume control bar, add option to loop, add error catching for file chooser
 	public void initComponents() {
 		//Create the frame for the player which everything is added to
 		player = new JFrame();
@@ -65,6 +67,11 @@ public class AudioPlay implements LineListener {
 		//Create and add the file chooser browser to the frame
 		final JPanel browser = new JPanel();
 		final JFileChooser fileChooser = new JFileChooser(wavfile);
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("wav files", "wav");
+		fileChooser.addChoosableFileFilter(filter);
+		fileChooser.removeChoosableFileFilter(fileChooser.getChoosableFileFilters()[0]);
+		fileChooser.setFileFilter(filter);
+		
 		JButton openBtn = new JButton("Open");
 		//Describe what actions to perform when the open button is clicked and add the button to the frame
 		openBtn.addActionListener(
@@ -94,6 +101,7 @@ public class AudioPlay implements LineListener {
 				});
 		browser.add(openBtn);
 		player.getContentPane().add(browser);
+		
 		//Describe what actions to perform when the play button is clicked and add the button to the frame
 		playBtn.addActionListener(
 				new ActionListener() {
